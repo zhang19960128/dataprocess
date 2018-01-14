@@ -48,6 +48,15 @@ std::vector<double> dist(std::vector<double> A,std::vector<double> B,std::vector
 	}
 	return len;
 };
+//compute the polar between two atoms consider their charge. we assume that A is in the center. Thus has no contribution to the polar all.
+std::vector<double> polar(atom& A,atom& B,std::vector<double> p){
+	std::vector<double> orient;
+	orient=dist(A.getposition(),B.getposition(),p);
+	for(std::vector<double>::iterator a=orient.begin();a!=orient.end();a++){
+		(*a)=(*a)*B.getcharge();
+	}
+	return orient;
+};
 double distance(std::vector<double> A){
 	double sum=0;
 	for(size_t i=0;i<3;i++){
@@ -88,9 +97,30 @@ std::vector<int> findneighbor_oxy(int index,int cell){
 	a[5]=(temp[0]+1)%cell+temp[1]*cell+temp[2]*cell*cell+2*cell*cell*cell;
 	return a;
 }
+std::vector<int> findneighbor_ba(int index,int cell){
+	std::vector<int> a(8,0);
+	//we think the Ba and Ti has the same index, because they are 1:1 in the cell and corresponds to the left front cornel of the cell.
+	std::vector<int> temp;
+	temp=changeindex(index,cell);
+	a[0]=temp[0]+temp[1]*cell+temp[2]*cell*cell;
+	a[1]=(temp[0]+1)%cell+temp[1]*cell+temp[2]*cell*cell;
+	a[2]=temp[0]+((temp[1]+1)%cell)*cell+temp[2]*cell*cell;
+	a[3]=(temp[0]+1)%cell*cell+((temp[1]+1)%cell)*cell+temp[2]*cell*cell;
+	a[4]=temp[0]+temp[1]*cell+(temp[2]+1)%cell*cell*cell;
+	a[5]=(temp[0]+1)%cell+temp[1]*cell+(temp[2]+1)%cell*cell*cell;
+	a[6]=temp[0]+((temp[1]+1)%cell)*cell+(temp[2]+1)%cell*cell*cell;
+	a[7]=(temp[0]+1)%cell*cell+((temp[1]+1)%cell)*cell+(temp[2]+1)%cell*cell*cell;
+	return a;
+}
 std::vector<double>& operator +=(std::vector<double>& A,std::vector<double>& B){
 	for(size_t i=0;i<A.size();i++){
 		A[i]=A[i]+B[i];	
+	}
+	return A;
+}
+std::vector<double>& operator /=(std::vector<double>& A,double fraction){
+	for(std::vector<double>::iterator a=A.begin();a!=A.end();a++){
+		(*a)=(*a)/fraction;
 	}
 	return A;
 }

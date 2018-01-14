@@ -2,3 +2,5 @@ the average lattice constant is:
 4.03641 4.03666 4.03669
 the average displacement is:
 0.102115 0.102269 0.102272
+the average polar is:
+0 0 0

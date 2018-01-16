@@ -36,8 +36,30 @@ atom& operator <<(atom& input,std::fstream& file){
 			input.position=p;
 			return input;
 		};
+//because the structure of barrium is not sorted perfectly, so we need to sort the atoms all together.
+void sorted_ba(std::vector<atom> &Ba,std::vector<double> p,int cell){
+	std::vector<int> temp(3,0);
+	int all=Ba.size();
+	for(std::vector<atom>::iterator a=Ba.begin();a!=Ba.end();a++){
+		for(size_t i=0;i<3;i++){
+			temp[i]=round((*a).position[i]/p[i]*cell);
+			temp[i]=temp[i]%cell;
+		}
+		(*a).tick=temp[0]+temp[1]*cell+temp[2]*cell*cell;
+	}
+	atom good;
+	for(int i=0;i<all-1;i++)
+		for(int j=0;j<all-i-1;j++){
+			if(Ba[j].tick>Ba[j+1].tick){
+				good=Ba[j];
+				Ba[j]=Ba[j+1];
+				Ba[j+1]=good;
+			}
+			else continue;
+		}
+}
 //compute the vector from A to B where A is the origin and B is the goal.
-std::vector<double> dist(std::vector<double> A,std::vector<double> B,std::vector<double> P){
+std::vector<double> dist(std::vector<double> A,std::vector<double> B,std::vector<double>& P){
 	//we need the periodically length of the crystal.
 	std::vector<double> len(3,0);
 	double tempdata;
@@ -49,7 +71,7 @@ std::vector<double> dist(std::vector<double> A,std::vector<double> B,std::vector
 	return len;
 };
 //compute the polar between two atoms consider their charge. we assume that A is in the center. Thus has no contribution to the polar all.
-std::vector<double> polar(atom& A,atom& B,std::vector<double> p){
+std::vector<double> polar(atom& A,atom& B,std::vector<double>& p){
 	std::vector<double> orient;
 	orient=dist(A.getposition(),B.getposition(),p);
 	for(std::vector<double>::iterator a=orient.begin();a!=orient.end();a++){
@@ -105,11 +127,11 @@ std::vector<int> findneighbor_ba(int index,int cell){
 	a[0]=temp[0]+temp[1]*cell+temp[2]*cell*cell;
 	a[1]=(temp[0]+1)%cell+temp[1]*cell+temp[2]*cell*cell;
 	a[2]=temp[0]+((temp[1]+1)%cell)*cell+temp[2]*cell*cell;
-	a[3]=(temp[0]+1)%cell*cell+((temp[1]+1)%cell)*cell+temp[2]*cell*cell;
+	a[3]=(temp[0]+1)%cell+((temp[1]+1)%cell)*cell+temp[2]*cell*cell;
 	a[4]=temp[0]+temp[1]*cell+(temp[2]+1)%cell*cell*cell;
 	a[5]=(temp[0]+1)%cell+temp[1]*cell+(temp[2]+1)%cell*cell*cell;
 	a[6]=temp[0]+((temp[1]+1)%cell)*cell+(temp[2]+1)%cell*cell*cell;
-	a[7]=(temp[0]+1)%cell*cell+((temp[1]+1)%cell)*cell+(temp[2]+1)%cell*cell*cell;
+	a[7]=(temp[0]+1)%cell+((temp[1]+1)%cell)*cell+(temp[2]+1)%cell*cell*cell;
 	return a;
 }
 std::vector<double>& operator +=(std::vector<double>& A,std::vector<double>& B){
@@ -123,4 +145,9 @@ std::vector<double>& operator /=(std::vector<double>& A,double fraction){
 		(*a)=(*a)/fraction;
 	}
 	return A;
+}
+std::vector<double>& operator *=(std::vector<double>& A,double fraction){
+	for(std::vector<double>::iterator a=A.begin();a!=A.end();a++){
+		(*a)=(*a)*fraction;
+	}
 }

@@ -22,7 +22,7 @@ int main(){
 	std::list<double> displace_y;
 	std::list<double> displace_z;
 	std::vector<double> temp_polar(3,0.0);
-	std::vector<double> polar(3,0.0);
+	std::vector<double> polar_all(3,0.0);
 	std::vector<double> polar_oxy(3,0.0);
 	std::vector<double> polar_ba(3,0.0);
 	std::list<double> polar_x;
@@ -50,23 +50,25 @@ int main(){
 			//find the items in the file and starting processing them.
 			for(std::vector<atom>::iterator a=Ba.begin();a!=Ba.end();a++){
 				(*a)<<filein;
-				(*a).setcharge(1.34730);
+				(*a).setcharge(2.9);
 			}
 			for(std::vector<atom>::iterator a=Ti.begin();a!=Ti.end();a++){
 				(*a)<<filein;
-				(*a).setcharge(1.28905);
+				(*a).setcharge(6.7);
 			}	
 			for(std::vector<atom>::iterator a=Oxy.begin();a!=Oxy.end();a++){
 				(*a)<<filein;
-				(*a).setcharge(-0.87878);
+				(*a).setcharge(-3.2);
 			}
+			//sort the barrium
+			sorted_ba(Ba,p,cell);
 			//specify the index for Ti
 			for(size_t i=0;i<cell*cell*cell;i++){
 				//the index for the neighbor oxygen should be (0,n1,n2,n3),(0,n1+1,n2,n3),(1,n1,n2,n3),(1,n1,n2+1,n3),(2,n1,n2,n3),(2,n1,n2,n3+1)
 				//clear the displacement and polar for one cell.
 				for(size_t k=0;k<3;k++){
 					displace[k]=0.0;
-					polar[k]=0;
+					polar_all[k]=0;
 					polar_oxy[k]=0.0;
 					polar_ba[k]=0.0;
 				}
@@ -74,7 +76,7 @@ int main(){
 				temp=findneighbor_oxy(i,cell);
 				for(std::vector<int>::iterator a=temp.begin();a!=temp.end();a++){
 				temp_displace=dist(Ti[i].getposition(),Oxy[*a].getposition(),p);
-			//	temp_polar=polar(Ti[i],Oxy[*a],p);
+				temp_polar=polar(Ti[i],Oxy[*a],p);
 				polar_oxy+=temp_polar;
 				displace+=temp_displace;
 				}
@@ -84,15 +86,19 @@ int main(){
 				displace_z.push_back(displace[2]/6);
 				temp=findneighbor_ba(i,cell);
 				for(std::vector<int>::iterator a=temp.begin();a!=temp.end();a++){
-				//	temp_polar=polar(Ti[i],Ba[*a],p);
+					temp_polar=polar(Ti[i],Ba[*a],p);
 					polar_ba+=temp_polar;
 				}
 				polar_ba/=8.0;
-				polar+=polar_ba;
-				polar+=polar_oxy;
-				polar_x.push_back(polar[0]);
-				polar_y.push_back(polar[1]);
-				polar_z.push_back(polar[2]);
+				polar_all+=polar_ba;
+				polar_all+=polar_oxy;
+				polar_all*=(16/(p[0]*p[1]*p[2]/cell/cell/cell));
+				polar_x.push_back(polar_all[0]);
+				polar_y.push_back(polar_all[1]);
+		  	polar_z.push_back(polar_all[2]);
+				for(size_t i=0;i<cell*cell*cell;i++){
+					if(i!=Ba[i].gettick()) std::cout<<"error"<<std::endl;
+				}
 			}
 		}
 	}
